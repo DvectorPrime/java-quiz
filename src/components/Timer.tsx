@@ -1,32 +1,10 @@
-import { useEffect, useState } from 'react'
 import { formatTime } from '../utils'
 
 interface TimerProps {
-  initialSeconds: number
-  onTimeUp: () => void
-  isActive: boolean
+  secondsLeft: number
 }
 
-export function Timer({ initialSeconds, onTimeUp, isActive }: TimerProps) {
-  const [secondsLeft, setSecondsLeft] = useState(initialSeconds)
-
-  useEffect(() => {
-    if (!isActive) return
-
-    const interval = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(interval)
-          onTimeUp()
-          return 0
-        }
-        return prev - 1
-      })
-    }, 1000)
-
-    return () => clearInterval(interval)
-  }, [isActive, onTimeUp])
-
+export function Timer({ secondsLeft }: TimerProps) {
   const isLow = secondsLeft < 60
   const isCritical = secondsLeft < 300 // 5 minutes
   const isRed = secondsLeft < 60 // 1 minute

@@ -1,28 +1,99 @@
-import { useState } from 'react'
-import type { ShuffledQuestion } from '../utils'
+import { useEffect, useRef, useState } from 'react'
+import type { QuizAnswer, ShuffledQuestion } from '../utils'
+import { savePersistedQuizState } from '../utils'
 import { Timer } from './Timer'
 import { QuestionCard } from './QuestionCard'
 
 interface QuizScreenProps {
   questions: ShuffledQuestion[]
   timeLimitSeconds: number
-  onSubmit: (answers: Record<number, string | null>, isTimedOut: boolean) => void
+  initialCurrentQuestion: number
+  initialAnswers: Record<number, QuizAnswer | null>
+  initialRemainingSeconds: number
+  initialElapsedSeconds: number
+  name: string
+  onSubmit: (
+    snapshot: {
+      currentQuestion: number
+      answers: Record<number, QuizAnswer | null>
+      remainingSeconds: number
+      elapsedSeconds: number
+    },
+    isTimedOut: boolean
+  ) => void
 }
 
 export function QuizScreen({
   questions,
   timeLimitSeconds,
+  initialCurrentQuestion,
+  initialAnswers,
+  initialRemainingSeconds,
+  initialElapsedSeconds,
+  name,
   onSubmit,
 }: QuizScreenProps) {
-  const [currentQuestion, setCurrentQuestion] = useState(0)
-  const [answers, setAnswers] = useState<Record<number, string | null>>({})
+  const [currentQuestion, setCurrentQuestion] = useState(initialCurrentQuestion)
+  const [answers, setAnswers] = useState<Record<number, QuizAnswer | null>>(initialAnswers)
+  const [remainingSeconds, setRemainingSeconds] = useState(initialRemainingSeconds)
+  const [elapsedSeconds, setElapsedSeconds] = useState(initialElapsedSeconds)
   const [showConfirm, setShowConfirm] = useState(false)
   const [isNavigatorVisible, setIsNavigatorVisible] = useState(true)
+  const hasAutoSubmittedRef = useRef(false)
 
   const hasTimeLimit = timeLimitSeconds > 0
   const unansweredCount = questions.length - Object.values(answers).filter((a) => a !== null && a !== undefined).length
 
-  const handleSelectAnswer = (answer: string) => {
+  useEffect(() => {
+    savePersistedQuizState({
+      mode: 'quiz',
+      name,
+      questions,
+      timeLimitSeconds,
+      answers,
+      currentQuestion,
+      remainingSeconds,
+      elapsedSeconds,
+      timeSpent: elapsedSeconds,
+      isTimedOut: false,
+    })
+  }, [answers, currentQuestion, elapsedSeconds, name, questions, remainingSeconds, timeLimitSeconds])
+
+  useEffect(() => {
+    if (!hasTimeLimit) return
+
+    const interval = setInterval(() => {
+      setRemainingSeconds((prevRemaining) => {
+        if (prevRemaining <= 1) {
+          clearInterval(interval)
+          return 0
+        }
+
+        return prevRemaining - 1
+      })
+
+      setElapsedSeconds((prevElapsed) => prevElapsed + 1)
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [hasTimeLimit])
+
+  useEffect(() => {
+    if (hasTimeLimit && remainingSeconds === 0 && !hasAutoSubmittedRef.current) {
+      hasAutoSubmittedRef.current = true
+      onSubmit(
+        {
+          currentQuestion,
+          answers,
+          remainingSeconds,
+          elapsedSeconds,
+        },
+        true
+      )
+    }
+  }, [answers, currentQuestion, elapsedSeconds, hasTimeLimit, onSubmit, remainingSeconds])
+
+  const handleSelectAnswer = (answer: QuizAnswer) => {
     setAnswers((prev) => ({
       ...prev,
       [currentQuestion]: answer,
@@ -41,21 +112,33 @@ export function QuizScreen({
     }
   }
 
-  const handleTimeUp = () => {
-    onSubmit(answers, true)
-  }
-
   const handleSubmit = () => {
     if (unansweredCount > 0) {
       setShowConfirm(true)
     } else {
-      onSubmit(answers, false)
+      onSubmit(
+        {
+          currentQuestion,
+          answers,
+          remainingSeconds,
+          elapsedSeconds,
+        },
+        false
+      )
     }
   }
 
   const handleConfirmSubmit = () => {
     setShowConfirm(false)
-    onSubmit(answers, false)
+    onSubmit(
+      {
+        currentQuestion,
+        answers,
+        remainingSeconds,
+        elapsedSeconds,
+      },
+      false
+    )
   }
 
   const questionStates: Array<'answered' | 'unanswered'> = questions.map(
@@ -75,18 +158,16 @@ export function QuizScreen({
             </div>
             <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
               <div
-                className="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-300"
+                className="bg-linear-to-r from-blue-500 to-cyan-400 h-full transition-all duration-300"
                 style={{ width: `${progressPercentage}%` }}
               />
             </div>
           </div>
 
           {hasTimeLimit && (
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
               <Timer
-                initialSeconds={timeLimitSeconds}
-                onTimeUp={handleTimeUp}
-                isActive={true}
+                secondsLeft={remainingSeconds}
               />
             </div>
           )}
@@ -171,7 +252,7 @@ export function QuizScreen({
           <div className="p-4 border-t border-slate-700">
             <button
               onClick={handleSubmit}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+              className="w-full py-3 bg-linear-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
             >
               Submit Quiz
             </button>

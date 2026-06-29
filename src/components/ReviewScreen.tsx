@@ -43,7 +43,7 @@ export function ReviewScreen({
   return (
     <div className="min-h-screen bg-slate-950 flex flex-col">
       {/* Header with Score */}
-      <div className="bg-gradient-to-r from-blue-900 via-slate-900 to-cyan-900 border-b border-slate-700 p-6">
+      <div className="bg-linear-to-r from-blue-900 via-slate-900 to-cyan-900 border-b border-slate-700 p-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-slate-400 text-sm mb-2">Quiz Review</div>
           {name && <h1 className="text-3xl font-bold text-slate-100 mb-4">{name}</h1>}
@@ -194,7 +194,7 @@ export function ReviewScreen({
           <div className="p-4 border-t border-slate-700">
             <button
               onClick={onRetake}
-              className="w-full py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+              className="w-full py-3 bg-linear-to-r from-blue-600 to-cyan-600 text-white rounded-lg font-bold hover:shadow-lg hover:shadow-blue-500/50 transition-all"
             >
               Retake Quiz
             </button>

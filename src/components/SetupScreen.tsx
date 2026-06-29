@@ -44,11 +44,11 @@ export function SetupScreen({ totalQuestions, onStartQuiz }: SetupScreenProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-linear-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-bold bg-linear-to-r from-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2">
             COS203 Java Quiz
           </h1>
           <p className="text-slate-400">Test your knowledge</p>
@@ -157,7 +157,7 @@ export function SetupScreen({ totalQuestions, onStartQuiz }: SetupScreenProps) {
             disabled={!isValid}
             className={`w-full py-3 rounded-lg font-bold text-lg transition-all ${
               isValid
-                ? 'bg-gradient-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-blue-500/50 transform hover:scale-105'
+                ? 'bg-linear-to-r from-blue-600 to-cyan-600 text-white hover:shadow-lg hover:shadow-blue-500/50 transform hover:scale-105'
                 : 'bg-slate-700 text-slate-500 cursor-not-allowed'
             }`}
           >

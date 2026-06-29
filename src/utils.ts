@@ -22,6 +22,55 @@ export interface QuizAttempt {
   isTimedOut: boolean
 }
 
+export type QuizAnswer = 'option_A' | 'option_B' | 'option_C' | 'option_D'
+
+export interface QuizProgressState {
+  currentQuestion: number
+  answers: Record<number, QuizAnswer | null>
+  remainingSeconds: number
+  elapsedSeconds: number
+}
+
+export interface PersistedQuizState {
+  mode: 'quiz' | 'review'
+  name: string
+  questions: ShuffledQuestion[]
+  timeLimitSeconds: number
+  answers: Record<number, QuizAnswer | null>
+  currentQuestion: number
+  remainingSeconds: number
+  elapsedSeconds: number
+  timeSpent: number
+  isTimedOut: boolean
+}
+
+const STORAGE_KEY = 'cos203-java-quiz-state'
+
+export function loadPersistedQuizState(): PersistedQuizState | null {
+  if (typeof window === 'undefined') return null
+
+  const rawValue = window.localStorage.getItem(STORAGE_KEY)
+  if (!rawValue) return null
+
+  try {
+    return JSON.parse(rawValue) as PersistedQuizState
+  } catch {
+    return null
+  }
+}
+
+export function savePersistedQuizState(state: PersistedQuizState): void {
+  if (typeof window === 'undefined') return
+
+  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+}
+
+export function clearPersistedQuizState(): void {
+  if (typeof window === 'undefined') return
+
+  window.localStorage.removeItem(STORAGE_KEY)
+}
+
 // Fisher-Yates shuffle
 export function shuffle<T>(array: T[]): T[] {
   const result = [...array]
